@@ -12,6 +12,9 @@ excel_sheets = {
 	"Darnel" : "MD World Cup 2018 Sheet.xlsx",
 }
 
+RESULTS_WB =  "Results.xlsx"
+STATS_WB = "bro_stats.xlsx"
+
 def read_part4(workbook):
 	wb = openpyxl.load_workbook(path.join("picks", workbook))
 	ws = wb.active
@@ -30,7 +33,25 @@ def calculate_part4_score(picks, results):
 			score += 1
 	return score
 
-results_part4 = read_part4('Results.xlsx')
+def write_stats(col, scores):
+	wb = openpyxl.load_workbook(path.join("picks", STATS_WB))
+	ws = wb.active
+
+	print(scores)
+	i = 2
+	for player, score in scores.items():
+		player_col = "A" + str(i)
+		ws[player_col] = player
+
+		score_col = col + str(i)
+		ws[score_col] = score
+		i += 1
+
+	wb.save(path.join("picks", STATS_WB))
+
+
+results_part4 = read_part4(RESULTS_WB)
+print(results_part4)
 
 part4_scores = {}
 for player, workbook in excel_sheets.items():
@@ -39,3 +60,4 @@ for player, workbook in excel_sheets.items():
 	part4_scores[player] = player_part4_score
 
 print (part4_scores)
+write_stats('B', part4_scores)
