@@ -50,11 +50,21 @@ def read_part5(workbook):
 		if str(row[3].value).lower() == "x":
 			group_result_2.append((i)%5)
 
+	return results
+
 def calculate_part4_score(picks, results):
 	score = 0
 	for i, result in enumerate(results):
 		if picks[i] == result:
 			score += 1
+	return score
+
+def calculate_part5_score(picks, results):
+	score = 0
+	for i, group_result in enumerate(results):
+		for team in group_result:
+			if team in picks[i]:
+				score += 2
 	return score
 
 def write_stats(col, scores):
@@ -91,6 +101,12 @@ results_part4 = read_part4(RESULTS_WB)
 results_part5 = read_part5(RESULTS_WB)
 print("Part4 results: ", results_part4)
 print("Part5 resutls: ", results_part5)
+
+jordan_part5 = read_part5(excel_sheets["Jordan"])
+print("jordan results: ", jordan_part5)
+
+jordan_part5_score = calculate_part5_score(jordan_part5, results_part5)
+print("jordan p5 score: ", jordan_part5_score)
 
 part4_scores = {}
 for player, workbook in excel_sheets.items():
