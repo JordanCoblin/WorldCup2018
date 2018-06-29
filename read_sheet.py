@@ -27,7 +27,7 @@ def read_part4(workbook):
 				results.append(i)
 	return results
 
-def read_part5(workbook):
+def read_part2(workbook):
 	wb = openpyxl.load_workbook(path.join("picks", workbook))
 	ws = wb.active
 
@@ -52,19 +52,51 @@ def read_part5(workbook):
 
 	return results
 
-def calculate_part4_score(picks, results):
-	score = 0
-	for i, result in enumerate(results):
-		if picks[i] == result:
-			score += 1
-	return score
+def read_part3(workbook):
+	wb = openpyxl.load_workbook(path.join("picks", workbook))
+	ws = wb.active
 
-def calculate_part5_score(picks, results):
+	results = []
+	group_result_1 = -1
+	group_result_2 = -1
+	for i, row in enumerate(ws.iter_rows(min_row=43, max_row=62, min_col=3, max_col=6)):
+
+		# Next group result
+		if (i+1)%5 == 0:
+			results.append(group_result_1)
+			results.append(group_result_2)
+			group_result_1 = -1
+			group_result_2 = -1
+			continue
+
+		if str(row[0].value).lower() == "x":
+			group_result_1 = i%5
+
+		if str(row[3].value).lower() == "x":
+			group_result_2 = i%5
+
+	return results
+
+def calculate_part2_score(picks, results):
 	score = 0
 	for i, group_result in enumerate(results):
 		for team in group_result:
 			if team in picks[i]:
 				score += 2
+	return score
+
+def calculate_part3_score(picks, results):
+	score = 0
+	for i, group_result in enumerate(results):
+		if picks[i] == group_result:
+			score += 3
+	return score
+
+def calculate_part4_score(picks, results):
+	score = 0
+	for i, result in enumerate(results):
+		if picks[i] == result:
+			score += 1
 	return score
 
 def write_stats(col, scores):
@@ -97,16 +129,18 @@ def write_headers(bro_map):
 
 	wb.save(path.join("picks", STATS_WB))
 
+results_part2 = read_part2(RESULTS_WB)
+results_part3 = read_part3(RESULTS_WB)
 results_part4 = read_part4(RESULTS_WB)
-results_part5 = read_part5(RESULTS_WB)
-print("Part4 results: ", results_part4)
-print("Part5 resutls: ", results_part5)
+print("Part3 results: ", results_part3)
 
-jordan_part5 = read_part5(excel_sheets["Jordan"])
-print("jordan results: ", jordan_part5)
+jordan_part2 = read_part2(excel_sheets["Jordan"])
+jordan_part3 = read_part3(excel_sheets["Jordan"])
+print("Jordan part3 resultsL ", jordan_part3)
 
-jordan_part5_score = calculate_part5_score(jordan_part5, results_part5)
-print("jordan p5 score: ", jordan_part5_score)
+jordan_part2_score = calculate_part2_score(jordan_part2, results_part2)
+jordan_part3_score = calculate_part3_score(jordan_part3, results_part3)
+print("part3 score: ", jordan_part3_score)
 
 part4_scores = {}
 for player, workbook in excel_sheets.items():
