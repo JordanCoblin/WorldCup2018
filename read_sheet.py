@@ -99,56 +99,46 @@ def calculate_part4_score(picks, results):
 			score += 1
 	return score
 
-def write_stats(col, scores):
+def write_stats(scores):
 	wb = openpyxl.load_workbook(path.join("picks", STATS_WB))
+	wb.remove(wb['Sheet1'])
+	wb.create_sheet('Sheet1')
+
 	ws = wb.active
+
+	header_row = ["Bro", "Part2 Score", "Part3 Score", "Part4 Score", "Total"]
+	ws.append(header_row)
 
 	print(scores)
-	i = 2
-	for player, score in scores.items():
-		score_col = col + str(i)
-		ws[score_col] = score
-		i += 1
+	for bro_name, part_scores in scores.items():
+		row = [bro_name]
+		for score in part_scores:
+			row.append(int(score))
+
+		ws.append(row)
 
 	wb.save(path.join("picks", STATS_WB))
 
-def write_total(score_map):
-	i = 2
-	total_score_map = score_map
-	write_stats('C', total_score_map)
-
-def write_headers(bro_map):
-	wb = openpyxl.load_workbook(path.join("picks", STATS_WB))
-	ws = wb.active
-
-	i = 2
-	for player, foo in bro_map.items():
-		player_col = "A" + str(i)
-		ws[player_col] = player
-		i += 1
-
-	wb.save(path.join("picks", STATS_WB))
-
+# Read from actual results
 results_part2 = read_part2(RESULTS_WB)
 results_part3 = read_part3(RESULTS_WB)
 results_part4 = read_part4(RESULTS_WB)
-print("Part3 results: ", results_part3)
 
-jordan_part2 = read_part2(excel_sheets["Jordan"])
-jordan_part3 = read_part3(excel_sheets["Jordan"])
-print("Jordan part3 resultsL ", jordan_part3)
+bro_scores = {}
+for bro, workbook in excel_sheets.items():
+	bro_part2 = read_part2(workbook)
+	bro_part3 = read_part3(workbook)
+	bro_part4 = read_part4(workbook)
 
-jordan_part2_score = calculate_part2_score(jordan_part2, results_part2)
-jordan_part3_score = calculate_part3_score(jordan_part3, results_part3)
-print("part3 score: ", jordan_part3_score)
+	bro_scores[bro] = []
+	bro_part2_score = calculate_part2_score(bro_part2, results_part2)
+	bro_part3_score = calculate_part3_score(bro_part3, results_part3)
+	bro_part4_score = calculate_part4_score(bro_part4, results_part4)
+	
+	bro_scores[bro].append(bro_part2_score)
+	bro_scores[bro].append(bro_part3_score)
+	bro_scores[bro].append(bro_part4_score)
+	bro_scores[bro].append(bro_part2_score + bro_part3_score + bro_part4_score)
 
-part4_scores = {}
-for player, workbook in excel_sheets.items():
-	player_part4 = read_part4(workbook)
-	player_part4_score = calculate_part4_score(player_part4, results_part4)
-	part4_scores[player] = player_part4_score
-
-print (part4_scores)
-write_headers(part4_scores)
-write_stats('B', part4_scores)
-write_total(part4_scores)
+print (bro_scores)
+write_stats(bro_scores)
