@@ -7,24 +7,48 @@ excel_sheets = {
 	"Millie" : "World Cup 2018 Sheet - Emile.xlsx",
 	"Nish" : "World Cup 2018 Sheet Nish.xlsx",
 	"Shonah" : "World Cup 2018 Sheet Shonah.xlsx",
-	"Patty" : "World Cup 2018 Sheet Shonah.xlsx",
-	"Vineet" : "World Cup 2018 Sheet Shonah.xlsx",
+	"Patty" : "World Cup 2018 Sheet_Pfingler.xlsx",
+	"Vineet" : "VINNY_WORLD_CUP.xlsx",
 	"Darnel" : "MD World Cup 2018 Sheet.xlsx",
 }
 
 RESULTS_WB =  "Results.xlsx"
 STATS_WB = "bro_stats.xlsx"
 
+# Results are of the form []
 def read_part4(workbook):
 	wb = openpyxl.load_workbook(path.join("picks", workbook))
 	ws = wb.active
 
 	results = []
-	for row in ws.iter_rows(min_row=69, max_row=116, min_col=2, max_col=7):
+	for row in ws.iter_rows(min_row=69, max_row=116, min_col=3, max_col=5):
 		for i, cell in enumerate(row):
 			if str(cell.value).lower() == "x":
-	   			results.append(i)
+				results.append(i)
 	return results
+
+def read_part5(workbook):
+	wb = openpyxl.load_workbook(path.join("picks", workbook))
+	ws = wb.active
+
+	results = []
+	group_result_1 = []
+	group_result_2 = []
+	for i, row in enumerate(ws.iter_rows(min_row=18, max_row=37, min_col=3, max_col=6)):
+
+		# Next group result
+		if (i+1)%5 == 0:
+			results.append(group_result_1)
+			results.append(group_result_2)
+			group_result_1 = []
+			group_result_2 = []
+			continue
+
+		if str(row[0].value).lower() == "x":
+			group_result_1.append((i)%5)
+
+		if str(row[3].value).lower() == "x":
+			group_result_2.append((i)%5)
 
 def calculate_part4_score(picks, results):
 	score = 0
@@ -40,18 +64,33 @@ def write_stats(col, scores):
 	print(scores)
 	i = 2
 	for player, score in scores.items():
-		player_col = "A" + str(i)
-		ws[player_col] = player
-
 		score_col = col + str(i)
 		ws[score_col] = score
 		i += 1
 
 	wb.save(path.join("picks", STATS_WB))
 
+def write_total(score_map):
+	i = 2
+	total_score_map = score_map
+	write_stats('C', total_score_map)
+
+def write_headers(bro_map):
+	wb = openpyxl.load_workbook(path.join("picks", STATS_WB))
+	ws = wb.active
+
+	i = 2
+	for player, foo in bro_map.items():
+		player_col = "A" + str(i)
+		ws[player_col] = player
+		i += 1
+
+	wb.save(path.join("picks", STATS_WB))
 
 results_part4 = read_part4(RESULTS_WB)
-print(results_part4)
+results_part5 = read_part5(RESULTS_WB)
+print("Part4 results: ", results_part4)
+print("Part5 resutls: ", results_part5)
 
 part4_scores = {}
 for player, workbook in excel_sheets.items():
@@ -60,4 +99,6 @@ for player, workbook in excel_sheets.items():
 	part4_scores[player] = player_part4_score
 
 print (part4_scores)
+write_headers(part4_scores)
 write_stats('B', part4_scores)
+write_total(part4_scores)
